@@ -29,8 +29,7 @@ import java.util.Set;
 public class BuenSaborApplication {
 	private static final Logger logger = LoggerFactory.getLogger(BuenSaborApplication.class);
 
-	@Autowired
-	private ClienteRepository clienteRepository;
+
 	@Autowired
 	private ImagenPersonaRepository imagenPersonaRepository;
 	@Autowired

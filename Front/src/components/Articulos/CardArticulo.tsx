@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, Card } from 'react-bootstrap';
 import { useCart } from '../context/CartContext';
 
-
 type ArticuloCard = {
   id: number;
   denominacion: string;
@@ -17,7 +16,14 @@ const CardArticulo: React.FC<ArticuloCard> = ({ id, denominacion, precioVenta, d
   return (
     <div>
       <Card style={{ width: '18rem' }}>
-        <Card.Img variant="top" src={url} />
+        <Card.Img 
+          variant="top" 
+          src={url} 
+          onError={(e) => {
+            e.currentTarget.src = 'https://via.placeholder.com/150'; // URL de imagen de reserva si la principal falla
+          }} 
+          alt={denominacion} 
+        />
         <hr />
         <Card.Body>
           <Card.Title style={{ textAlign: 'center' }}>{denominacion}</Card.Title>

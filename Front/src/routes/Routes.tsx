@@ -1,16 +1,19 @@
-// routes/Rutas.tsx
+// Rutas.tsx
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Inicio from "../components/Inicio/Inicio";
-import ListaArticulos from "../components/ListaAticulos/ListaArticulos";
 import Carrito from "../components/Carrito/Carrito";
+import MainLayout from "../MainLayout";
+import Pedidos from "../components/Pedidos/Pedidos";
 
 const Rutas: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<Inicio />} />
-      <Route path="/:categoriaId" element={<ListaArticulos />} />
-      <Route path="/carrito" element={<Carrito />} />
+      <Route path="/" element={<MainLayout />}>
+        <Route index element={<Inicio />} />
+        <Route path="/carrito" element={<Carrito />} />
+        <Route path="/pedidos" element={<Pedidos />} /> {/* Nueva ruta */}
+      </Route>
     </Routes>
   );
 };

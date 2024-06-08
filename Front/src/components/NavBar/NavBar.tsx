@@ -12,6 +12,7 @@ const NavBar: React.FC = () => {
         <Nav className="mr-auto">
           <Nav.Link as={Link} to="/">Inicio</Nav.Link>
           <Nav.Link as={Link} to="/carrito">Carrito</Nav.Link>
+          <Nav.Link as={Link} to="/pedidos">Pedidos</Nav.Link> {/* Nuevo enlace */}
         </Nav>
       </Navbar.Collapse>
     </Navbar>

@@ -1,9 +1,8 @@
 import React from "react";
-
+import { BrowserRouter } from "react-router-dom";
 import NavBar from "./components/NavBar/NavBar";
 import { CartProvider } from "./components/context/CartContext";
 import Rutas from "./routes/Routes";
-import { BrowserRouter } from "react-router-dom";
 
 
 function App() {

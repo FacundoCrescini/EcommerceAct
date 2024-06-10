@@ -4,6 +4,7 @@ import { Table, Button, Form } from 'react-bootstrap';
 type Pedido = {
   id: number;
   estado: string;
+  clienteNombre: string;
 };
 
 const GestionPedidos: React.FC = () => {
@@ -11,6 +12,7 @@ const GestionPedidos: React.FC = () => {
   const [nuevoEstado, setNuevoEstado] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
+    console.log("llamando");
     const fetchPedidos = async () => {
       const response = await fetch('http://localhost:8080/api/pedidos');
       const data = await response.json();
@@ -29,7 +31,7 @@ const GestionPedidos: React.FC = () => {
 
   const handleSubmit = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/pedidos/${id}`, {
+      const response = await fetch(`http://localhost:8080/api/pedidos/editar/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -50,13 +52,15 @@ const GestionPedidos: React.FC = () => {
     }
   };
 
-  const estados = ['PREPARACION', 'PENDIENTE', 'CANCELADO', 'RECHAZADO', 'ENTREGADO'];
+  const estados = ['PREPARACION', 'PENDIENTE_ENTREGA_MP', 'PENDIENTE_ENTREGA_PAGO_EFECTIVO', 'CANCELADO', 'RECHAZADO', 'ENTREGADO'];
 
   const getClassByEstado = (estado: string) => {
     switch (estado) {
       case 'PREPARACION':
         return 'preparacion';
-      case 'PENDIENTE':
+      case 'PENDIENTE_ENTREGA_MP':
+        return 'pendiente';
+      case 'PENDIENTE_ENTREGA_PAGO_EFECTIVO':
         return 'pendiente';
       case 'CANCELADO':
         return 'cancelado';
@@ -77,12 +81,13 @@ const GestionPedidos: React.FC = () => {
         if (pedidosFiltrados.length === 0) return null;
         return (
           <div key={estado} style={{ marginBottom: '20px' }}>
-            <h4>{estado}</h4> {/* Cambia el título a un h4 para hacerlo más pequeño */}
+            <h4>{estado}</h4>
             <Table striped bordered hover>
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Estado</th>
+                  <th>Cliente</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -97,12 +102,14 @@ const GestionPedidos: React.FC = () => {
                         onChange={(e) => handleEstadoChange(pedido.id, e.target.value)}
                       >
                         <option value="PREPARACION">PREPARACION</option>
-                        <option value="PENDIENTE">PENDIENTE</option>
+                        <option value="PENDIENTE_ENTREGA_MP">PENDIENTE_ENTREGA_MP</option>
+                        <option value="PENDIENTE_ENTREGA_PAGO_EFECTIVO">PENDIENTE_ENTREGA_PAGO_EFECTIVO</option>
                         <option value="CANCELADO">CANCELADO</option>
                         <option value="RECHAZADO">RECHAZADO</option>
                         <option value="ENTREGADO">ENTREGADO</option>
                       </Form.Control>
                     </td>
+                    <td>{pedido.clienteNombre}</td>
                     <td>
                       <Button onClick={() => handleSubmit(pedido.id)}>Actualizar Estado</Button>
                     </td>

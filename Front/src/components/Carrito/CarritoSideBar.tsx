@@ -26,7 +26,7 @@ const CarritoSidebar: React.FC = () => {
   };
 
   return (
-    <div style={{ position: 'fixed', right: '20px', top: '20px', width: '300px', border: '1px solid #ddd', padding: '10px', backgroundColor: 'white', zIndex: 1000 }}>
+    <div style={{ position: 'fixed', right: '20px', top: '20px', width: '250px', border: '1px solid #ddd', padding: '10px', backgroundColor: 'white', zIndex: 1000 }}>
       <Button onClick={() => setIsOpen(!isOpen)} style={{ width: '100%' }}>
         {isOpen ? 'Cerrar Carrito' : 'Abrir Carrito'}
       </Button>

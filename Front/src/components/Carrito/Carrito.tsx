@@ -1,11 +1,30 @@
 import React, { useState } from 'react';
 import { Button, Card, Form } from 'react-bootstrap';
 import { useCart } from '../context/CartContext';
+import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import "./Carrito.css"
+
+async function createPreferenceMP(pedido) {
+  const urlServer = 'http://localhost:8080/api/pedidos/create_preference_mp';
+  const method = "POST";
+  const response = await fetch(urlServer, {
+    method: method,
+    body: JSON.stringify(pedido),
+    headers: {
+      "Content-Type": 'application/json'
+    }
+  });
+  return await response.json();
+}
+
+// Inicializar MercadoPago
+initMercadoPago('TEST-fad26a50-4373-4067-a401-a47ff50224c3', { locale: "es-AR" });
 
 const Carrito: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [formaPago, setFormaPago] = useState('EFECTIVO');
   const [tipoEnvio, setTipoEnvio] = useState('DELIVERY');
+  const [idPreference, setIdPreference] = useState('');
 
   const handleQuantityChange = (id: number, cantidad: number) => {
     updateQuantity(id, cantidad);
@@ -28,16 +47,69 @@ const Carrito: React.FC = () => {
     }
   };
 
+  const handleGetPreference = async () => {
+    if (formaPago === 'MERCADO_PAGO') {
+      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
+      const pedido = {
+        horaEstimadaFinalizacion: "14:30:00",
+        total: parseFloat(calcularTotal()),
+        totalCosto: parseFloat(calcularTotalCosto()),
+        estado: "PENDIENTE_ENTREGA_MP",
+        tipoEnvio: tipoEnvio,
+        formaPago: formaPago,
+        fechaPedido: new Date().toISOString().split('T')[0],
+        user: usuario,
+        detallePedidos: cart.map(item => ({
+          cantidad: item.cantidad,
+          subTotal: item.precioVenta * item.cantidad,
+          articulo: {
+            type: "articuloManufacturado",
+            id: item.id,
+            denominacion: item.denominacion,
+            precioVenta: item.precioVenta,
+            descripcion: item.descripcion,
+            tiempoEstimadoMinutos: item.tiempoEstimadoMinutos || 0,
+            preparacion: item.preparacion || "",
+            stock: item.stock || 0,
+            unidadMedida: {
+              id: item.unidadMedidaId,
+              denominacion: item.unidadMedidaDenominacion
+            },
+            categoria: {
+              id: item.categoriaId,
+              denominacion: item.categoriaDenominacion,
+              esInsumo: item.categoriaEsInsumo
+            },
+            imagenes: item.imagenes || []
+          }
+        })),
+      };
+
+      try {
+        const preferenceResponse = await createPreferenceMP({ id: 0, titulo: 'Pedido carrito', montoTotal: parseInt(calcularTotalCosto()) });
+        console.log("Preference id: " + preferenceResponse.id);
+        if (preferenceResponse) setIdPreference(preferenceResponse.id);
+      } catch (error) {
+        console.error('Error al crear la preferencia de Mercado Pago:', error);
+      }
+    } else {
+      handleSubmit();
+    }
+  };
+
   const handleSubmit = async () => {
+    const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+
     const pedido = {
       horaEstimadaFinalizacion: "14:30:00",
       total: parseFloat(calcularTotal()),
       totalCosto: parseFloat(calcularTotalCosto()),
-      estado: "PENDIENTE",
+      estado: formaPago === 'MERCADO_PAGO' ? "PENDIENTE_ENTREGA_MP" : "PENDIENTE_ENTREGA_PAGO_EFECTIVO",
       tipoEnvio: tipoEnvio,
       formaPago: formaPago,
       fechaPedido: new Date().toISOString().split('T')[0],
-      clienteId: 1,
+      user: usuario,
       detallePedidos: cart.map(item => ({
         cantidad: item.cantidad,
         subTotal: item.precioVenta * item.cantidad,
@@ -61,10 +133,15 @@ const Carrito: React.FC = () => {
           },
           imagenes: item.imagenes || []
         }
-      }))
+      })),
+      factura: {
+        fechaFcturacion: new Date().toISOString().split('T')[0],
+        mpPaymentId: formaPago === 'MERCADO_PAGO' ? idPreference : null,
+        pagado: formaPago === 'MERCADO_PAGO',
+        totalVenta: parseFloat(calcularTotal())
+      }
     };
 
-    console.log(pedido);
     try {
       const response = await fetch('http://localhost:8080/api/pedidos/crear', {
         method: 'POST',
@@ -109,7 +186,7 @@ const Carrito: React.FC = () => {
         <p>El carrito está vacío</p>
       ) : (
         <>
-        <h4>Articulos Seleccionados:</h4>
+          <h4>Articulos Seleccionados:</h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {cart.map((item) => (
               <Card key={item.id} style={{ width: '18rem', marginBottom: '10px' }}>
@@ -153,10 +230,16 @@ const Carrito: React.FC = () => {
                 Total con Envío: ${calcularTotalCosto()}
               </div>
             )}
-            <Button variant="success" style={{ marginLeft: '10px' }} onClick={handleSubmit}>
+            <Button variant="success" style={{ marginLeft: '10px' }} onClick={handleGetPreference}>
               Realizar Compra
             </Button>
           </div>
+          {formaPago === 'MERCADO_PAGO' && (
+            <div className={idPreference ? 'divVisible' : 'divInvisible'}>
+              <Wallet initialization={{ preferenceId: idPreference, redirectMode: "blank" }} 
+              customization={{ texts: { valueProp: 'smart_option' } }} onSubmit={handleSubmit} />
+            </div>
+          )}
         </>
       )}
     </div>

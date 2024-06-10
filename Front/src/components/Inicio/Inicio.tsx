@@ -32,6 +32,7 @@ const Inicio = () => {
   useEffect(() => {
     getCategorias();
     getArticulos();
+    getArticulosInsumo();
   }, []);
 
   const getCategorias = async () => {
@@ -57,7 +58,26 @@ const Inicio = () => {
       mode: 'cors',
     });
     const data = await response.json();
-    setArticulos(data);
+    setArticulos((prevArticulos) => {
+      const newArticulos = [...prevArticulos, ...data];
+      return [...new Map(newArticulos.map(item => [item.id, item])).values()];
+    });
+  };
+
+  const getArticulosInsumo = async () => {
+    const response = await fetch('http://localhost:8080/ArticuloInsumo/noElaborar', {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      mode: 'cors',
+    });
+    const data = await response.json();
+    setArticulos((prevArticulos) => {
+      const newArticulos = [...prevArticulos, ...data];
+      return [...new Map(newArticulos.map(item => [item.id, item])).values()];
+    });
   };
 
   const handleCategoriaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -80,21 +100,28 @@ const Inicio = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h2>El Buen Sabor</h2>
-      <Form.Group>
-        <Form.Label>Filtrar por Categoría</Form.Label>
-        <Form.Control as="select" onChange={handleCategoriaChange} defaultValue="">
-          <option value="">Todas las Categorías</option>
-          {categorias.map((categoria) => (
-            <option key={categoria.id} value={categoria.id}>
-              {categoria.denominacion}
-            </option>
-          ))}
-        </Form.Control>
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Buscar Artículo</Form.Label>
-        <Form.Control type="text" placeholder="Buscar artículo" value={filtro} onChange={handleFiltroChange} />
-      </Form.Group>
+      <img
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAve-HxyZKbjAq4gWGSTF2yg5Z7eX8W4G5GQ&s"
+        alt="El Buen Sabor"
+        style={{ width: '300px', display: 'block', margin: '0 auto 20px' }} // Tamaño y centrado de la imagen
+      />
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px' }}>
+        <Form.Group>
+          <Form.Label>Filtrar por Categoría</Form.Label>
+          <Form.Control as="select" onChange={handleCategoriaChange} defaultValue="">
+            <option value="">Todas las Categorías</option>
+            {categorias.map((categoria) => (
+              <option key={categoria.id} value={categoria.id}>
+                {categoria.denominacion}
+              </option>
+            ))}
+          </Form.Control>
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Buscar Artículo</Form.Label>
+          <Form.Control type="text" placeholder="Buscar artículo" value={filtro} onChange={handleFiltroChange} />
+        </Form.Group>
+      </div>
       <div className="col-12 row" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
         {articulosFiltrados.length !== 0 ? (
           articulosFiltrados.map((articulo) => (

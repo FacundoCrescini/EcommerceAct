@@ -192,7 +192,7 @@ const Carrito: React.FC = () => {
               <Card key={item.id} style={{ width: '18rem', marginBottom: '10px' }}>
                 <Card.Img 
                   variant="top" 
-                  src={item.imagenes.length > 0 ? item.imagenes[0].url : 'https://via.placeholder.com/150'} 
+                  src={(item.imagenes && item.imagenes.length > 0) ? item.imagenes[0].url : 'https://via.placeholder.com/150'} 
                   onError={(e) => {
                     e.currentTarget.src = 'https://via.placeholder.com/150'; // URL de imagen de reserva si la principal falla
                   }} 
@@ -206,44 +206,4 @@ const Carrito: React.FC = () => {
                   <input
                     type="number"
                     value={item.cantidad}
-                    onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value))}
-                    min="1"
-                    style={{ width: '60px', marginRight: '10px' }}
-                  />
-                  <Button variant="danger" onClick={() => removeFromCart(item.id)}>
-                    Eliminar
-                  </Button>
-                  <div>Subtotal: ${calcularSubtotal(item.precioVenta, item.cantidad)}</div>
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
-            <Button variant="secondary" onClick={clearCart}>
-              Vaciar Carrito
-            </Button>
-            <div style={{ fontWeight: 'bold' }}>
-              Total: ${calcularTotal()}
-            </div>
-            {tipoEnvio === 'DELIVERY' && (
-              <div style={{ fontWeight: 'bold' }}>
-                Total con Envío: ${calcularTotalCosto()}
-              </div>
-            )}
-            <Button variant="success" style={{ marginLeft: '10px' }} onClick={handleGetPreference}>
-              Realizar Compra
-            </Button>
-          </div>
-          {formaPago === 'MERCADO_PAGO' && (
-            <div className={idPreference ? 'divVisible' : 'divInvisible'}>
-              <Wallet initialization={{ preferenceId: idPreference, redirectMode: "blank" }} 
-              customization={{ texts: { valueProp: 'smart_option' } }} onSubmit={handleSubmit} />
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
-};
-
-export default Carrito;
+            

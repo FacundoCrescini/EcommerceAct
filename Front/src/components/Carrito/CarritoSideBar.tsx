@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 const CarritoSidebar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { cart, removeFromCart, updateQuantity } = useCart();
+  const { cart = [], removeFromCart, updateQuantity } = useCart(); // Asegurando que cart siempre tenga un array vacío por defecto
   const navigate = useNavigate();
 
   const handleQuantityChange = (id: number, cantidad: number) => {
@@ -41,7 +41,7 @@ const CarritoSidebar: React.FC = () => {
                 <Card key={item.id} style={{ marginBottom: '10px' }}>
                   <Card.Img 
                     variant="top" 
-                    src={item.imagenes.length > 0 ? item.imagenes[0].url : 'https://via.placeholder.com/150'} 
+                    src={(item.imagenes && item.imagenes.length > 0) ? item.imagenes[0].url : 'https://via.placeholder.com/150'} 
                     onError={(e) => {
                       e.currentTarget.src = 'https://via.placeholder.com/150'; // URL de imagen de reserva si la principal falla
                     }} 

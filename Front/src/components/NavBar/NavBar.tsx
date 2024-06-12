@@ -42,6 +42,8 @@ const NavBar: React.FC = () => {
               <>
                 <Nav.Link as={Link} to="/pedidos">Pedidos</Nav.Link>
                 <Nav.Link as={Link} to="/gestion-usuarios">Gestión de Usuarios</Nav.Link>
+                <Nav.Link as={Link} to="/charts">Charts</Nav.Link>
+
               </>
             )}
           </Nav>

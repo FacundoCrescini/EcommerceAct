@@ -2,17 +2,36 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 type Articulo = {
   id: number;
+  tipo: 'articulo';
   denominacion: string;
   precioVenta: number;
   descripcion: string;
   url: string;
+  cantidad: number;
+  imagenes: { id: number, url: string }[];
 };
 
-type CartItem = Articulo & { cantidad: number };
+type Promocion = {
+  id: number;
+  tipo: 'promocion';
+  denominacion: string;
+  fechaDesde: string;
+  fechaHasta: string;
+  horaDesde: string;
+  horaHasta: string;
+  descripcionDescuento: string;
+  precioPromocional: number;
+  tipoPromocion: string;
+  articulos: Articulo[] | null;
+  cantidad: number;
+  imagenes: { id: number, url: string }[];
+};
+
+type CartItem = Articulo | Promocion;
 
 type CartContextType = {
   cart: CartItem[];
-  addToCart: (articulo: Articulo) => void;
+  addToCart: (item: CartItem) => void;
   removeFromCart: (id: number) => void;
   updateQuantity: (id: number, cantidad: number) => void;
   clearCart: () => void;
@@ -30,15 +49,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem('cart', JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (articulo: Articulo) => {
+  const addToCart = (item: CartItem) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find(item => item.id === articulo.id);
+      const existingItem = prevCart.find(cartItem => cartItem.id === item.id && cartItem.tipo === item.tipo);
       if (existingItem) {
-        return prevCart.map(item =>
-          item.id === articulo.id ? { ...item, cantidad: item.cantidad + 1 } : item
+        return prevCart.map(cartItem =>
+          cartItem.id === item.id && cartItem.tipo === item.tipo ? { ...cartItem, cantidad: cartItem.cantidad + 1 } : cartItem
         );
       } else {
-        return [...prevCart, { ...articulo, cantidad: 1 }];
+        return [...prevCart, { ...item, cantidad: 1 }];
       }
     });
   };

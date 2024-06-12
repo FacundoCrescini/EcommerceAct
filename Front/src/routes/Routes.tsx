@@ -8,6 +8,7 @@ import Login from "../components/Login/Login";
 import { RutaPrivada } from "../assets/controlAcceso/RutaPrivada";
 import RolUsuario from "../assets/controlAcceso/RolUsuario";
 import GestionUsuarios from "../components/GestionUsuarios/GestionUsuarios";
+import Charts from "../components/Charts/Charts";
 
 const Rutas: React.FC = () => {
   return (
@@ -26,6 +27,8 @@ const Rutas: React.FC = () => {
             <GestionUsuarios />
           </RolUsuario>
         } />
+                <Route path="/charts" element={<Charts></Charts>} />
+
       </Route>
     </Routes>
   );

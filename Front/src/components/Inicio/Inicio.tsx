@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Form } from 'react-bootstrap';
+import {  Form } from 'react-bootstrap';
 import { useCart } from '../context/CartContext';
-import './styles.css'; // Importa el archivo CSS
+import './styles.css';
+import CardArticulo from '../Articulos/CardArticulo';
+import CardPromocion from '../Promocion/CardPromocion';
 
 type Categoria = {
   id: number;
@@ -20,11 +22,44 @@ type Articulo = {
   descripcion: string;
   imagenes: ImagenArticulo[];
   categoria: Categoria;
+  tockActual: number;
+};
+
+type ArticuloInsumo = {
+  id: number;
+  denominacion: string;
+  precioVenta: number;
+  unidadMedida: {
+    id: number;
+    denominacion: string;
+  };
+  precioCompra: number;
+  stockActual: number;
+  stockMaximo: number;
+  esParaElaborar: boolean;
+  imagenes: ImagenArticulo[];
+  categoria: Categoria;
+};
+
+type Promocion = {
+  id: number;
+  denominacion: string;
+  fechaDesde: string;
+  fechaHasta: string;
+  horaDesde: string;
+  horaHasta: string;
+  descripcionDescuento: string;
+  precioPromocional: number;
+  tipoPromocion: string;
+  articulos: Articulo[] | null;
+  imagenes: { id: number, url: string }[];
 };
 
 const Inicio = () => {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [articulos, setArticulos] = useState<Articulo[]>([]);
+  const [articulosInsumo, setArticulosInsumo] = useState<ArticuloInsumo[]>([]);
+  const [promociones, setPromociones] = useState<Promocion[]>([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
   const [filtro, setFiltro] = useState<string>('');
   const { addToCart } = useCart();
@@ -33,6 +68,7 @@ const Inicio = () => {
     getCategorias();
     getArticulos();
     getArticulosInsumo();
+    getPromociones();
   }, []);
 
   const getCategorias = async () => {
@@ -65,7 +101,7 @@ const Inicio = () => {
   };
 
   const getArticulosInsumo = async () => {
-    const response = await fetch('http://localhost:8080/ArticuloInsumo/noElaborar', {
+    const response = await fetch('http://localhost:8080/ArticuloInsumo', {
       method: 'GET',
       headers: {
         'Content-type': 'application/json',
@@ -74,10 +110,27 @@ const Inicio = () => {
       mode: 'cors',
     });
     const data = await response.json();
-    setArticulos((prevArticulos) => {
-      const newArticulos = [...prevArticulos, ...data];
-      return [...new Map(newArticulos.map(item => [item.id, item])).values()];
+    setArticulosInsumo((prevArticulosInsumo) => {
+      const newArticulosInsumo = [...prevArticulosInsumo, ...data];
+      return [...new Map(newArticulosInsumo.map(item => [item.id, item])).values()];
     });
+  };
+
+  const getPromociones = async () => {
+    const response = await fetch('http://localhost:8080/promociones', {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      mode: 'cors',
+    });
+    const data = await response.json();
+    const promocionesConImagenes = data.map((promo: Promocion) => ({
+      ...promo,
+      imagenes: [{ id: 1, url: 'https://t3.ftcdn.net/jpg/00/48/29/92/360_F_48299241_I5A7IhGjjSuHYZXuTWhsjvNF2rhIhCMp.jpg' }],
+    }));
+    setPromociones(promocionesConImagenes);
   };
 
   const handleCategoriaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -95,17 +148,21 @@ const Inicio = () => {
       articulo.denominacion.toLowerCase().includes(filtro.toLowerCase())
   );
 
-  console.log('Articulos Filtrados:', articulosFiltrados);
+  const articulosInsumoFiltrados = articulosInsumo.filter(
+    (articuloInsumo) =>
+      (categoriaSeleccionada === null || articuloInsumo.categoria.id === categoriaSeleccionada) &&
+      articuloInsumo.denominacion.toLowerCase().includes(filtro.toLowerCase())
+  );
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="container">
       <h2>El Buen Sabor</h2>
       <img
         src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAve-HxyZKbjAq4gWGSTF2yg5Z7eX8W4G5GQ&s"
         alt="El Buen Sabor"
-        style={{ width: '300px', display: 'block', margin: '0 auto 20px' }} // Tamaño y centrado de la imagen
+        className="header-image"
       />
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px' }}>
+      <div className="filter-container">
         <Form.Group>
           <Form.Label>Filtrar por Categoría</Form.Label>
           <Form.Control as="select" onChange={handleCategoriaChange} defaultValue="">
@@ -122,33 +179,32 @@ const Inicio = () => {
           <Form.Control type="text" placeholder="Buscar artículo" value={filtro} onChange={handleFiltroChange} />
         </Form.Group>
       </div>
-      <div className="col-12 row" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+
+      <h2 style={{ textAlign: 'center', marginTop: '20px' }}>Promociones</h2>
+      <div className="card-container">
+        {promociones.map((promocion) => (
+          <CardPromocion key={promocion.id} {...promocion} />
+        ))}
+      </div>
+
+      <h2 style={{ textAlign: 'center', marginTop: '20px' }}>Articulos</h2>
+      <div className="card-container">
         {articulosFiltrados.length !== 0 ? (
           articulosFiltrados.map((articulo) => (
-            <Card key={articulo.id} style={{ width: '18rem', margin: '10px' }}>
-              <Card.Img 
-                variant="top" 
-                src={articulo.imagenes.length > 0 ? articulo.imagenes[0].url : 'https://via.placeholder.com/150'}
-                onError={(e) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/150'; // URL de imagen de reserva si la principal falla
-                }} 
-                alt={articulo.denominacion}
-                className="card-img-top" // Aplicar la clase CSS
-              />
-              <Card.Body>
-                <Card.Title>{articulo.denominacion}</Card.Title>
-                <Card.Subtitle>${articulo.precioVenta}</Card.Subtitle>
-                <Card.Text>{articulo.descripcion}</Card.Text>
-                <Button variant="primary" onClick={() => addToCart(articulo)}>
-                  Añadir al carrito
-                </Button>
-              </Card.Body>
-            </Card>
+            <CardArticulo key={articulo.id} {...articulo} />
           ))
         ) : (
           <h3>No hay Articulos</h3>
         )}
+        {articulosInsumoFiltrados.length !== 0 ? (
+          articulosInsumoFiltrados.map((articuloInsumo) => (
+            <CardArticulo key={articuloInsumo.id} {...articuloInsumo} />
+          ))
+        ) : (
+          <h3>No hay Articulos Insumo</h3>
+        )}
       </div>
+      
     </div>
   );
 };

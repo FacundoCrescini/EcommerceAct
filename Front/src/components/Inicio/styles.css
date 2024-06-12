@@ -1,8 +1,36 @@
 /* styles.css */
+
+.container {
+  padding: 20px;
+}
+
+.header-image {
+  width: 300px;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card-item {
+  width: 18rem;
+  margin: 10px;
+}
+
 .card-img-top {
-    width: 100%;
-    height: 200px; /* Define la altura fija para mantener la proporción cuadrada */
-    object-fit: cover; /* Esto asegura que la imagen cubra el contenedor manteniendo la proporción */
-    border-radius: 10px;
-  }
-  
+  width: 100%;
+  height: 200px; /* Define la altura fija para mantener la proporción cuadrada */
+  object-fit: cover; /* Esto asegura que la imagen cubra el contenedor manteniendo la proporción */
+  border-radius: 10px;
+}

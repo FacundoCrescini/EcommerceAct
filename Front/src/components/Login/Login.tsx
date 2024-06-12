@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './Login.css'; // Importa el archivo de estilos CSS
 
 interface Usuario {
+  gmail: string;
   usuario: string;
   clave: string;
   rol?: string;
@@ -11,7 +12,7 @@ interface Usuario {
 
 const Login = () => {
   const navigate = useNavigate();
-  const [usuario, setUsuario] = useState<Usuario>({ usuario: '', clave: '' });
+  const [usuario, setUsuario] = useState<Usuario>({ gmail: '', usuario: '', clave: '' });
   const [txtValidacion, setTxtValidacion] = useState<string>("");
   const [isRegistering, setIsRegistering] = useState<boolean>(false);
 
@@ -20,8 +21,8 @@ const Login = () => {
   }, []);
 
   const handleRegister = async () => {
-    if (!usuario.usuario) {
-      setTxtValidacion("Ingrese el nombre de usuario");
+    if (!usuario.usuario || !usuario.gmail) {
+      setTxtValidacion("Ingrese el nombre de usuario y el gmail");
       return;
     }
     if (!usuario.clave) {
@@ -37,6 +38,7 @@ const Login = () => {
         },
         body: JSON.stringify({
           nombre: usuario.usuario,
+          gmail: usuario.gmail,
           contraseña: usuario.clave,
         }),
       });
@@ -55,8 +57,8 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
-    if (!usuario.usuario) {
-      setTxtValidacion("Ingrese el nombre de usuario");
+    if (!usuario.gmail) {
+      setTxtValidacion("Ingrese el gmail");
       return;
     }
     if (!usuario.clave) {
@@ -71,7 +73,7 @@ const Login = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nombre: usuario.usuario,
+          gmail: usuario.gmail,
           contraseña: usuario.clave,
         }),
       });
@@ -107,15 +109,29 @@ const Login = () => {
     <div className="login-container">
       <form className="login-form">
         <h2 className="login-title">{isRegistering ? "Registrar Cuenta" : "Iniciar Sesión"}</h2>
+        {isRegistering && (
+          <div className="form-group">
+            <label htmlFor="txtUsuario" className="form-label">Usuario</label>
+            <input
+              type="text"
+              id='txtUsuario'
+              className="form-control"
+              placeholder="Ingrese el nombre"
+              value={usuario.usuario}
+              onChange={e => setUsuario({ ...usuario, usuario: e.target.value })}
+              onKeyDown={(e) => { if (e.key === "Enter") handleRegister(); }}
+            />
+          </div>
+        )}
         <div className="form-group">
-          <label htmlFor="txtUsuario" className="form-label">Usuario</label>
+          <label htmlFor="txtGmail" className="form-label">Gmail</label>
           <input
             type="text"
-            id='txtUsuario'
+            id='txtGmail'
             className="form-control"
-            placeholder="Ingrese el nombre"
-            value={usuario.usuario}
-            onChange={e => setUsuario({ ...usuario, usuario: e.target.value })}
+            placeholder="Ingrese el gmail"
+            value={usuario.gmail}
+            onChange={e => setUsuario({ ...usuario, gmail: e.target.value })}
             onKeyDown={(e) => { if (e.key === "Enter") isRegistering ? handleRegister() : handleLogin(); }}
           />
         </div>

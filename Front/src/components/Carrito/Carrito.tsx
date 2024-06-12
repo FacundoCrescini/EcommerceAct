@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Button, Card, Form } from 'react-bootstrap';
 import { useCart } from '../context/CartContext';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
-import "./Carrito.css"
+import "./Carrito.css";
+import ArticulosContext from '../context/ArticulosContext';
+
 
 async function createPreferenceMP(pedido) {
   const urlServer = 'http://localhost:8080/api/pedidos/create_preference_mp';
@@ -25,6 +27,7 @@ const Carrito: React.FC = () => {
   const [formaPago, setFormaPago] = useState('EFECTIVO');
   const [tipoEnvio, setTipoEnvio] = useState('DELIVERY');
   const [idPreference, setIdPreference] = useState('');
+  const { articulos, articulosInsumo } = useContext(ArticulosContext);
 
   const handleQuantityChange = (id: number, cantidad: number) => {
     updateQuantity(id, cantidad);
@@ -35,7 +38,7 @@ const Carrito: React.FC = () => {
   };
 
   const calcularTotal = () => {
-    return cart.reduce((total, item) => total + item.precioVenta * item.cantidad, 0).toFixed(2);
+    return cart.reduce((total, item) => total + ('precioVenta' in item ? item.precioVenta * item.cantidad : item.precioPromocional * item.cantidad), 0).toFixed(2);
   };
 
   const calcularTotalCosto = () => {
@@ -47,45 +50,14 @@ const Carrito: React.FC = () => {
     }
   };
 
+  const fetchDetallesPromocion = async (id: number) => {
+    const response = await fetch(`http://localhost:8080/promociones/${id}/Detalles`);
+    return await response.json();
+  };
+
   const handleGetPreference = async () => {
+    //primero chequeo si el pedido esta con mercado pago, para generar el mppreference, y luego de eso hago el submit a la db
     if (formaPago === 'MERCADO_PAGO') {
-      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-
-      const pedido = {
-        horaEstimadaFinalizacion: "14:30:00",
-        total: parseFloat(calcularTotal()),
-        totalCosto: parseFloat(calcularTotalCosto()),
-        estado: "PENDIENTE_ENTREGA_MP",
-        tipoEnvio: tipoEnvio,
-        formaPago: formaPago,
-        fechaPedido: new Date().toISOString().split('T')[0],
-        user: usuario,
-        detallePedidos: cart.map(item => ({
-          cantidad: item.cantidad,
-          subTotal: item.precioVenta * item.cantidad,
-          articulo: {
-            type: "articuloManufacturado",
-            id: item.id,
-            denominacion: item.denominacion,
-            precioVenta: item.precioVenta,
-            descripcion: item.descripcion,
-            tiempoEstimadoMinutos: item.tiempoEstimadoMinutos || 0,
-            preparacion: item.preparacion || "",
-            stock: item.stock || 0,
-            unidadMedida: {
-              id: item.unidadMedidaId,
-              denominacion: item.unidadMedidaDenominacion
-            },
-            categoria: {
-              id: item.categoriaId,
-              denominacion: item.categoriaDenominacion,
-              esInsumo: item.categoriaEsInsumo
-            },
-            imagenes: item.imagenes || []
-          }
-        })),
-      };
-
       try {
         const preferenceResponse = await createPreferenceMP({ id: 0, titulo: 'Pedido carrito', montoTotal: parseInt(calcularTotalCosto()) });
         console.log("Preference id: " + preferenceResponse.id);
@@ -100,9 +72,49 @@ const Carrito: React.FC = () => {
 
   const handleSubmit = async () => {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
-
+    let maxTiempoEstimado = 0;
+  
+    // Fetch detalles de promociones y encontrar el tiempo máximo
+    const detallesPromociones = await Promise.all(cart
+      .filter(item => item.tipo === 'promocion')
+      .map(async item => {
+        const detalles = await fetchDetallesPromocion(item.id);
+        return detalles.map(detalle => {
+          const articulo = [...articulos, ...articulosInsumo].find(a => a.id === detalle.articuloId);
+          if (articulo) {
+            // Comparar y establecer el tiempo máximo estimado
+            if (articulo.tiempoEstimadoMinutos > maxTiempoEstimado) {
+              maxTiempoEstimado = articulo.tiempoEstimadoMinutos;
+            }
+            return {
+              cantidad: parseInt(detalle.detalle),
+              subTotal: articulo.precioVenta * parseInt(detalle.detalle),
+              articulo: {
+                type: "articuloManufacturado",
+                id: articulo.id,
+              }
+            };
+          }
+          return null;
+        }).filter(Boolean);
+      })
+    );
+  
+    // Encontrar el tiempo máximo de los artículos en el carrito
+    cart
+      .filter(item => item.tipo === 'articulo')
+      .forEach(item => {
+        if (item.tiempoEstimadoMinutos > maxTiempoEstimado) {
+          maxTiempoEstimado = item.tiempoEstimadoMinutos;
+        }
+      });
+  
+    // Calcular la hora estimada de finalización
+    const currentDate = new Date();
+    currentDate.setMinutes(currentDate.getMinutes() + maxTiempoEstimado);
+    const horaEstimadaFinalizacion = currentDate.toTimeString().split(' ')[0];
     const pedido = {
-      horaEstimadaFinalizacion: "14:30:00",
+      horaEstimadaFinalizacion: horaEstimadaFinalizacion,
       total: parseFloat(calcularTotal()),
       totalCosto: parseFloat(calcularTotalCosto()),
       estado: formaPago === 'MERCADO_PAGO' ? "PENDIENTE_ENTREGA_MP" : "PENDIENTE_ENTREGA_PAGO_EFECTIVO",
@@ -110,30 +122,19 @@ const Carrito: React.FC = () => {
       formaPago: formaPago,
       fechaPedido: new Date().toISOString().split('T')[0],
       user: usuario,
-      detallePedidos: cart.map(item => ({
-        cantidad: item.cantidad,
-        subTotal: item.precioVenta * item.cantidad,
-        articulo: {
-          type: "articuloManufacturado",
-          id: item.id,
-          denominacion: item.denominacion,
-          precioVenta: item.precioVenta,
-          descripcion: item.descripcion,
-          tiempoEstimadoMinutos: item.tiempoEstimadoMinutos || 0,
-          preparacion: item.preparacion || "",
-          stock: item.stock || 0,
-          unidadMedida: {
-            id: item.unidadMedidaId,
-            denominacion: item.unidadMedidaDenominacion
-          },
-          categoria: {
-            id: item.categoriaId,
-            denominacion: item.categoriaDenominacion,
-            esInsumo: item.categoriaEsInsumo
-          },
-          imagenes: item.imagenes || []
-        }
-      })),
+      detallePedidos: [
+        ...cart
+          .filter(item => item.tipo === 'articulo')
+          .map(item => ({
+            cantidad: item.cantidad,
+            subTotal: item.precioVenta * item.cantidad,
+            articulo: {
+              type: "articuloManufacturado",
+              id: item.id,
+            }
+          })),
+        ...detallesPromociones.flat()
+      ],
       factura: {
         fechaFcturacion: new Date().toISOString().split('T')[0],
         mpPaymentId: formaPago === 'MERCADO_PAGO' ? idPreference : null,
@@ -141,7 +142,7 @@ const Carrito: React.FC = () => {
         totalVenta: parseFloat(calcularTotal())
       }
     };
-
+  
     try {
       const response = await fetch('http://localhost:8080/api/pedidos/crear', {
         method: 'POST',
@@ -150,7 +151,7 @@ const Carrito: React.FC = () => {
         },
         body: JSON.stringify(pedido)
       });
-
+  
       if (response.ok) {
         alert('Pedido creado con éxito');
         clearCart();
@@ -190,19 +191,19 @@ const Carrito: React.FC = () => {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {cart.map((item) => (
               <Card key={item.id} style={{ width: '18rem', marginBottom: '10px' }}>
-                <Card.Img 
-                  variant="top" 
-                  src={(item.imagenes && item.imagenes.length > 0) ? item.imagenes[0].url : 'https://via.placeholder.com/150'} 
+                <Card.Img
+                  variant="top"
+                  src={(item.imagenes && item.imagenes.length > 0) ? item.imagenes[0].url : 'https://via.placeholder.com/150'}
                   onError={(e) => {
                     e.currentTarget.src = 'https://via.placeholder.com/150'; // URL de imagen de reserva si la principal falla
-                  }} 
-                  alt={item.denominacion} 
-                  style={{ width: '100%', height: '200px', objectFit: 'cover' }} 
+                  }}
+                  alt={item.denominacion}
+                  style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                 />
                 <Card.Body>
                   <Card.Title>{item.denominacion}</Card.Title>
-                  <Card.Subtitle>${item.precioVenta}</Card.Subtitle>
-                  <Card.Text>{item.descripcion}</Card.Text>
+                  <Card.Subtitle>${'precioVenta' in item ? item.precioVenta : item.precioPromocional}</Card.Subtitle>
+                  <Card.Text>{'precioVenta' in item ? item.descripcion : item.descripcionDescuento}</Card.Text>
                   <input
                     type="number"
                     value={item.cantidad}
@@ -213,7 +214,7 @@ const Carrito: React.FC = () => {
                   <Button variant="danger" onClick={() => removeFromCart(item.id)}>
                     Eliminar
                   </Button>
-                  <div>Subtotal: ${calcularSubtotal(item.precioVenta, item.cantidad)}</div>
+                  <div>Subtotal: ${calcularSubtotal('precioVenta' in item ? item.precioVenta : item.precioPromocional, item.cantidad)}</div>
                 </Card.Body>
               </Card>
             ))}
@@ -236,8 +237,8 @@ const Carrito: React.FC = () => {
           </div>
           {formaPago === 'MERCADO_PAGO' && (
             <div className={idPreference ? 'divVisible' : 'divInvisible'}>
-              <Wallet initialization={{ preferenceId: idPreference, redirectMode: "blank" }} 
-              customization={{ texts: { valueProp: 'smart_option' } }} onSubmit={handleSubmit} />
+              <Wallet initialization={{ preferenceId: idPreference, redirectMode: "blank" }}
+                customization={{ texts: { valueProp: 'smart_option' } }} onSubmit={handleSubmit} />
             </div>
           )}
         </>

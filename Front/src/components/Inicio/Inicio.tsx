@@ -101,7 +101,7 @@ const Inicio = () => {
   };
 
   const getArticulosInsumo = async () => {
-    const response = await fetch('http://localhost:8080/ArticuloInsumo', {
+    const response = await fetch('http://localhost:8080/ArticuloInsumo/noElaborar', {
       method: 'GET',
       headers: {
         'Content-type': 'application/json',

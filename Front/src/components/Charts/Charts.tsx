@@ -8,6 +8,8 @@ const Charts = () => {
   const [pedidosPorFormaPago, setPedidosPorFormaPago] = useState([]);
   const [pedidosPorMes, setPedidosPorMes] = useState([]);
   const [pedidosPorArticulo, setPedidosPorArticulo] = useState([]);
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
 
   useEffect(() => {
     const fetchPedidosPorFormaPago = async () => {
@@ -92,8 +94,43 @@ const Charts = () => {
     );
   };
 
+  const generarExcel = async () => {
+    const email = JSON.parse(localStorage.getItem('usuario')).gmail; // Obtén el correo electrónico del usuario del localStorage
+    try {
+      const response = await axios.get('http://localhost:8080/api/pedidos/generarExcel', {
+        params: {
+          fechaInicio: fechaInicio,
+          fechaFin: fechaFin,
+          email: email // Añade el correo electrónico como parámetro
+        }
+      });
+
+      if (response.status === 204) {
+        alert('No hay pedidos entre las fechas dadas.');
+      } else if (response.status === 200) {
+        alert('El archivo Excel se ha enviado por correo electrónico.');
+      }
+
+    } catch (error) {
+      console.error('Error generando Excel:', error);
+    }
+  };
+
+  const handleFechaInicioChange = (event) => {
+    setFechaInicio(event.target.value);
+  };
+
+  const handleFechaFinChange = (event) => {
+    setFechaFin(event.target.value);
+  };
+
   return (
     <div className="charts-container">
+      <div className="generar">
+        <input type="date" value={fechaInicio} onChange={handleFechaInicioChange} />
+        <input type="date" value={fechaFin} onChange={handleFechaFinChange} />
+        <button onClick={generarExcel}>Generar Excel</button>
+      </div>
       {generarGraficoPorFormaPago()}
       {generarGraficoPorMes()}
       {generarGraficoPorArticulo()}

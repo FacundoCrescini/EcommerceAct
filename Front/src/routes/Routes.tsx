@@ -27,8 +27,11 @@ const Rutas: React.FC = () => {
             <GestionUsuarios />
           </RolUsuario>
         } />
-                <Route path="/charts" element={<Charts></Charts>} />
-
+          <Route path="/charts" element={
+          <RolUsuario rol="admin">
+            <Charts></Charts>
+          </RolUsuario>
+        } />
       </Route>
     </Routes>
   );

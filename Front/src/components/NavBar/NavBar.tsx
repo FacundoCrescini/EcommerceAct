@@ -12,7 +12,6 @@ const NavBar: React.FC = () => {
   const navigate = useNavigate();
   const { clearCart } = useCart(); // Obtener la función clearCart del contexto del carrito
 
-  
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -40,16 +39,17 @@ const NavBar: React.FC = () => {
             <Nav.Link as={Link} to="/carrito">Carrito</Nav.Link>
             {user?.rol === "admin" && (
               <>
-                <Nav.Link as={Link} to="/pedidos">Pedidos</Nav.Link>
+                
                 <Nav.Link as={Link} to="/gestion-usuarios">Gestión de Usuarios</Nav.Link>
                 <Nav.Link as={Link} to="/charts">Charts</Nav.Link>
-
+                <Nav.Link as={Link} to="/caja">Caja</Nav.Link>
+                <Nav.Link as={Link} to="/cocina">Cocina</Nav.Link>
               </>
             )}
           </Nav>
           {user && (
             <Nav className="ms-auto">
-              <NavDropdown title={`Signed in as: ${user.nombre}`} id="user-dropdown">
+              <NavDropdown title={`Signed in as: ${user.usuario}`} id="user-dropdown">
                 <NavDropdown.Item onClick={handleLogout}>Cerrar Sesión</NavDropdown.Item>
               </NavDropdown>
             </Nav>

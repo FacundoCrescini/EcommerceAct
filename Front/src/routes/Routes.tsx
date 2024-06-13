@@ -9,12 +9,16 @@ import { RutaPrivada } from "../assets/controlAcceso/RutaPrivada";
 import RolUsuario from "../assets/controlAcceso/RolUsuario";
 import GestionUsuarios from "../components/GestionUsuarios/GestionUsuarios";
 import Charts from "../components/Charts/Charts";
+import Cocina from "../components/Pedidos/Cocina";
+import Caja from "../components/Pedidos/Caja";
 
 const Rutas: React.FC = () => {
   return (
     <Routes>
+      
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<MainLayout />}>
+      
         <Route index element={<Inicio />} />
         <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
         <Route path="/pedidos" element={
@@ -32,6 +36,17 @@ const Rutas: React.FC = () => {
             <Charts></Charts>
           </RolUsuario>
         } />
+        <Route path="/cocina" element={
+          <RolUsuario rol="admin">
+            <Cocina></Cocina>
+          </RolUsuario>
+        } />
+        <Route path="/caja" element={
+          <RolUsuario rol="admin">
+            <Caja></Caja>
+          </RolUsuario>
+        } />
+
       </Route>
     </Routes>
   );

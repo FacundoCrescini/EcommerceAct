@@ -11,6 +11,7 @@ import GestionUsuarios from "../components/GestionUsuarios/GestionUsuarios";
 import Charts from "../components/Charts/Charts";
 import Cocina from "../components/Pedidos/Cocina";
 import Caja from "../components/Pedidos/Caja";
+import DetalleArticulo from "../components/Articulos/DetalleArticulo";
 
 const Rutas: React.FC = () => {
   return (
@@ -20,6 +21,10 @@ const Rutas: React.FC = () => {
       <Route path="/" element={<MainLayout />}>
       
         <Route index element={<Inicio />} />
+
+        <Route path="/detalle">
+          <Route path=":id" element={<DetalleArticulo/>}/>
+        </Route>
         <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
         <Route path="/pedidos" element={
           <RolUsuario rol="admin">

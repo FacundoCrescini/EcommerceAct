@@ -46,6 +46,10 @@ const CardPromocion: React.FC<PromocionCard> = ({
         <Card.Subtitle className="mb-2 text-muted">${precioPromocional}</Card.Subtitle>
         <Card.Text>{descripcionDescuento}</Card.Text>
         <div style={{ textAlign: 'center' }}>
+          <hr />
+          <a href={`/promocion/${id}`}>
+            <Button variant='info' className='mb-3'>Ver Detalle</Button>
+          </a>
           <Button
             variant="primary"
             onClick={() =>

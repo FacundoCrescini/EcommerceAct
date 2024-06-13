@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import ArticulosContext from '../context/ArticulosContext';
 import { Button, Card, Carousel } from 'react-bootstrap';
 
@@ -26,7 +26,7 @@ const DetalleArticulo = () => {
     }
 
     const articulo = buscarArticuloPorId(id, articulos) || buscarArticuloPorId(id, articulosInsumo);
-    console.log("Articulo",articulo);
+    //console.log("Articulo",articulo);
 
     if (!articulo) {
         return <div>No se encontró el artículo</div>;
@@ -34,20 +34,31 @@ const DetalleArticulo = () => {
     
 
   return (
-    <div>
+    <div style={{display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center'}}>
+        <div  style={{textAlign:'start',width:'100%',padding:'20px'}}>
+            <div style={{width:'80px'}}>
+                <a href="/">
+                <Button variant='info'>Volver</Button>
+                </a>
+            </div>
+        </div>
         
-        <Card style={{ width: '30rem' }}>
+        <Card style={{ width: '30rem',marginTop:'20px' }}>
+            <div style={{padding:'20px',display:'flex',justifyContent:'center',alignItems:'center'}}>
 
+            
+        <Carousel>
         {articulo.imagenes.map((imagen, index) => (
                         <Carousel.Item key={index}>
                             <img src={imagen.url} alt="" style={{ maxWidth: '300px' }} />
                         </Carousel.Item>
                     ))}
-      
+      </Carousel>
+      </div>
 
       <Card.Body>
         <Card.Title>{articulo.denominacion}</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">{articulo.precioVenta}</Card.Subtitle>
+        <Card.Subtitle className="mb-2 text-muted">${articulo.precioVenta}</Card.Subtitle>
         <Card.Text>
          {articulo.descripcion}
         </Card.Text>

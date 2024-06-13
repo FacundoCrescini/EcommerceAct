@@ -31,7 +31,6 @@ const CardArticulo: React.FC<ArticuloCard> = ({ id, denominacion, precioVenta, d
       <Card.Body>
         <Card.Title style={{ textAlign: 'center' }}>{denominacion}</Card.Title>
         <Card.Subtitle className="mb-2 text-muted">${precioVenta}</Card.Subtitle>
-        <Card.Text>{descripcion}</Card.Text>
         <hr />
         <div style={{ textAlign: 'center' }}>
           <a href={`/detalle/${id}`}>

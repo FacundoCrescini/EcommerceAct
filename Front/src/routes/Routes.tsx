@@ -12,6 +12,7 @@ import Charts from "../components/Charts/Charts";
 import Cocina from "../components/Pedidos/Cocina";
 import Caja from "../components/Pedidos/Caja";
 import DetalleArticulo from "../components/Articulos/DetalleArticulo";
+import DetallePromocion from "../components/Promocion/DetallePromocion";
 
 const Rutas: React.FC = () => {
   return (
@@ -24,6 +25,9 @@ const Rutas: React.FC = () => {
 
         <Route path="/detalle">
           <Route path=":id" element={<DetalleArticulo/>}/>
+        </Route>
+        <Route path="/promocion">
+          <Route path=":id" element={<DetallePromocion/>}/>
         </Route>
         <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
         <Route path="/pedidos" element={

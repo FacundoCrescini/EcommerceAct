@@ -1,18 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Form } from 'react-bootstrap';
+import { Table, Button, Form, Modal } from 'react-bootstrap';
+
+type DetallePedido = {
+  id: number;
+  cantidad: number;
+  subTotal: number;
+  articuloDenominacion: string;
+};
+
+type Factura = {
+  id: number;
+  fechaFcturacion: string;
+  mpPaymentId: string | null;
+  totalVenta: number;
+  pagado: boolean;
+};
 
 type Pedido = {
   id: number;
   estado: string;
   clienteNombre: string;
+  detallePedidos: DetallePedido[];
+  factura: Factura;
 };
 
 const GestionPedidos: React.FC = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [nuevoEstado, setNuevoEstado] = useState<{ [key: number]: string }>({});
+  const [detallePedido, setDetallePedido] = useState<DetallePedido[]>([]);
+  const [factura, setFactura] = useState<Factura | null>(null);
+  const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [showFacturaModal, setShowFacturaModal] = useState(false);
 
   useEffect(() => {
-    console.log("llamando");
     const fetchPedidos = async () => {
       const response = await fetch('http://localhost:8080/api/pedidos');
       const data = await response.json();
@@ -52,6 +72,16 @@ const GestionPedidos: React.FC = () => {
     }
   };
 
+  const handleShowDetalle = (pedido: Pedido) => {
+    setDetallePedido(pedido.detallePedidos);
+    setShowDetalleModal(true);
+  };
+
+  const handleShowFactura = (factura: Factura) => {
+    setFactura(factura);
+    setShowFacturaModal(true);
+  };
+
   const estados = ['PREPARACION', 'PENDIENTE_ENTREGA_MP', 'PENDIENTE_ENTREGA_PAGO_EFECTIVO', 'CANCELADO', 'RECHAZADO', 'ENTREGADO'];
 
   const getClassByEstado = (estado: string) => {
@@ -59,7 +89,6 @@ const GestionPedidos: React.FC = () => {
       case 'PREPARACION':
         return 'preparacion';
       case 'PENDIENTE_ENTREGA_MP':
-        return 'pendiente';
       case 'PENDIENTE_ENTREGA_PAGO_EFECTIVO':
         return 'pendiente';
       case 'CANCELADO':
@@ -101,17 +130,20 @@ const GestionPedidos: React.FC = () => {
                         value={nuevoEstado[pedido.id] || pedido.estado}
                         onChange={(e) => handleEstadoChange(pedido.id, e.target.value)}
                       >
-                        <option value="PREPARACION">PREPARACION</option>
-                        <option value="PENDIENTE_ENTREGA_MP">PENDIENTE_ENTREGA_MP</option>
-                        <option value="PENDIENTE_ENTREGA_PAGO_EFECTIVO">PENDIENTE_ENTREGA_PAGO_EFECTIVO</option>
-                        <option value="CANCELADO">CANCELADO</option>
-                        <option value="RECHAZADO">RECHAZADO</option>
-                        <option value="ENTREGADO">ENTREGADO</option>
+                        {estados.map((estadoOption) => (
+                          <option key={estadoOption} value={estadoOption}>
+                            {estadoOption}
+                          </option>
+                        ))}
                       </Form.Control>
                     </td>
                     <td>{pedido.clienteNombre}</td>
                     <td>
-                      <Button onClick={() => handleSubmit(pedido.id)}>Actualizar Estado</Button>
+                      <div className="d-flex">
+                        <Button className="me-2" onClick={() => handleSubmit(pedido.id)}>Actualizar Estado</Button>
+                        <Button className="me-2" onClick={() => handleShowDetalle(pedido)}>Mostrar Artículos</Button>
+                        <Button onClick={() => handleShowFactura(pedido.factura)}>Mostrar Factura</Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -120,6 +152,47 @@ const GestionPedidos: React.FC = () => {
           </div>
         );
       })}
+
+      <Modal show={showDetalleModal} onHide={() => setShowDetalleModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Detalles del Pedido</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ul>
+            {detallePedido.map((detalle) => (
+              <li key={detalle.id}>
+                {detalle.articuloDenominacion} - Cantidad: {detalle.cantidad} - Subtotal: ${detalle.subTotal}
+              </li>
+            ))}
+          </ul>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDetalleModal(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showFacturaModal} onHide={() => setShowFacturaModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Factura</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {factura && (
+            <div>
+              <p>Fecha de Facturación: {factura.fechaFcturacion}</p>
+              <p>Total Venta: ${factura.totalVenta}</p>
+              <p>Pagado: {factura.pagado ? 'Sí' : 'No'}</p>
+              <p>ID de Pago MP: {factura.mpPaymentId || 'N/A'}</p>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowFacturaModal(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };

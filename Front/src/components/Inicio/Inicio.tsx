@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {  Form } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 import { useCart } from '../context/CartContext';
 import './styles.css';
 import CardArticulo from '../Articulos/CardArticulo';
@@ -22,7 +22,7 @@ type Articulo = {
   descripcion: string;
   imagenes: ImagenArticulo[];
   categoria: Categoria;
-  tockActual: number;
+  stock: number; // Actualización aquí
 };
 
 type ArticuloInsumo = {
@@ -85,7 +85,7 @@ const Inicio = () => {
   };
 
   const getArticulos = async () => {
-    const response = await fetch('http://localhost:8080/ArticuloManufacturado', {
+    const response = await fetch('http://localhost:8080/ArticuloManufacturado/Ecommerse', {
       method: 'GET',
       headers: {
         'Content-type': 'application/json',
@@ -204,7 +204,6 @@ const Inicio = () => {
           <h3>No hay Articulos Insumo</h3>
         )}
       </div>
-      
     </div>
   );
 };

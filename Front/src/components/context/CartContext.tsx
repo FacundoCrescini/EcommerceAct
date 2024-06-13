@@ -9,6 +9,7 @@ type Articulo = {
   url: string;
   cantidad: number;
   imagenes: { id: number, url: string }[];
+  stock: number;
 };
 
 type Promocion = {
@@ -54,7 +55,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const existingItem = prevCart.find(cartItem => cartItem.id === item.id && cartItem.tipo === item.tipo);
       if (existingItem) {
         return prevCart.map(cartItem =>
-          cartItem.id === item.id && cartItem.tipo === item.tipo ? { ...cartItem, cantidad: cartItem.cantidad + 1 } : cartItem
+          cartItem.id === item.id && cartItem.tipo === item.tipo
+            ? { ...cartItem, cantidad: cartItem.cantidad + 1 }
+            : cartItem
         );
       } else {
         return [...prevCart, { ...item, cantidad: 1 }];
@@ -67,9 +70,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const updateQuantity = (id: number, cantidad: number) => {
-    setCart((prevCart) => prevCart.map(item =>
-      item.id === id ? { ...item, cantidad } : item
-    ));
+    setCart((prevCart) => prevCart.map(item => {
+      if (item.id === id) {
+        return { ...item, cantidad };
+      }
+      return item;
+    }));
   };
 
   const clearCart = () => {

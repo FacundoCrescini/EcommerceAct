@@ -8,10 +8,13 @@ type ArticuloCard = {
   precioVenta: number;
   descripcion: string;
   imagenes: { id: number, url: string }[];
+  stock: number;
 };
 
-const CardArticulo: React.FC<ArticuloCard> = ({ id, denominacion, precioVenta, descripcion, imagenes }) => {
-  const { addToCart } = useCart();
+const CardArticulo: React.FC<ArticuloCard> = ({ id, denominacion, precioVenta, descripcion, imagenes, stock }) => {
+  const { cart, addToCart } = useCart();
+  const cartItem = cart.find(item => item.id === id && item.tipo === 'articulo');
+  const isStockDepleted = stock <= 0 || (cartItem && cartItem.cantidad >= stock);
 
   return (
     <Card className="card-item">
@@ -30,8 +33,12 @@ const CardArticulo: React.FC<ArticuloCard> = ({ id, denominacion, precioVenta, d
         <Card.Subtitle className="mb-2 text-muted">${precioVenta}</Card.Subtitle>
         <Card.Text>{descripcion}</Card.Text>
         <div style={{ textAlign: 'center' }}>
-          <Button variant="primary" onClick={() => addToCart({ id, tipo: 'articulo', denominacion, precioVenta, descripcion, url: imagenes[0]?.url, cantidad: 1, imagenes })}>
-            Añadir al carrito
+          <Button
+            variant={isStockDepleted ? "danger" : "primary"}
+            onClick={() => addToCart({ id, tipo: 'articulo', denominacion, precioVenta, descripcion, url: imagenes[0]?.url, cantidad: 1, imagenes, stock })}
+            disabled={isStockDepleted}
+          >
+            {isStockDepleted ? "No hay stock" : "Añadir al carrito"}
           </Button>
         </div>
       </Card.Body>

@@ -31,6 +31,7 @@ const Caja: React.FC = () => {
   const [factura, setFactura] = useState<Factura | null>(null);
   const [showDetalleModal, setShowDetalleModal] = useState(false);
   const [showFacturaModal, setShowFacturaModal] = useState(false);
+  const [selectedPedidoId, setSelectedPedidoId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -78,9 +79,16 @@ const Caja: React.FC = () => {
     setShowDetalleModal(true);
   };
 
-  const handleShowFactura = (factura: Factura) => {
+  const handleShowFactura = (factura: Factura, pedidoId: number) => {
     setFactura(factura);
+    setSelectedPedidoId(pedidoId);
     setShowFacturaModal(true);
+  };
+
+  const handlePDF = (pedidoId: number | null) => {
+    if (pedidoId !== null) {
+      window.open(`http://localhost:8080/api/pedidos/generatePDF/${pedidoId}`, "_blank");
+    }
   };
 
   const estadosCaja = ['PENDIENTE_ENTREGA_MP', 'PENDIENTE_ENTREGA_PAGO_EFECTIVO', 'CANCELADO', 'RECHAZADO', 'ENTREGADO', 'PREPARACION', 'PREPARADO'];
@@ -144,11 +152,15 @@ const Caja: React.FC = () => {
                     <td>{pedido.clienteNombre}</td>
                     <td>
                       <div className="d-flex">
-                        <Button className="me-2" onClick={() => handleSubmit(pedido.id)} disabled={pedido.estado === 'PREPARACION'}>
+                        <Button
+                          className="me-2"
+                          onClick={() => handleSubmit(pedido.id)}
+                          disabled={pedido.estado === 'PREPARACION'}
+                        >
                           Actualizar Estado
                         </Button>
                         <Button className="me-2" onClick={() => handleShowDetalle(pedido)}>Mostrar Artículos</Button>
-                        <Button onClick={() => handleShowFactura(pedido.factura)}>Mostrar Factura</Button>
+                        <Button onClick={() => handleShowFactura(pedido.factura, pedido.id)}>Mostrar Factura</Button>
                       </div>
                     </td>
                   </tr>
@@ -196,6 +208,9 @@ const Caja: React.FC = () => {
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowFacturaModal(false)}>
             Cerrar
+          </Button>
+          <Button variant="primary" onClick={() => handlePDF(selectedPedidoId)}>
+            Descargar PDF
           </Button>
         </Modal.Footer>
       </Modal>

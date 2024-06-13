@@ -5,7 +5,6 @@ import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import "./Carrito.css";
 import ArticulosContext from '../context/ArticulosContext';
 
-
 async function createPreferenceMP(pedido) {
   const urlServer = 'http://localhost:8080/api/pedidos/create_preference_mp';
   const method = "POST";
@@ -24,10 +23,17 @@ initMercadoPago('TEST-fad26a50-4373-4067-a401-a47ff50224c3', { locale: "es-AR" }
 
 const Carrito: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
-  const [formaPago, setFormaPago] = useState('EFECTIVO');
+  const [formaPago, setFormaPago] = useState('MERCADO_PAGO');
   const [tipoEnvio, setTipoEnvio] = useState('DELIVERY');
+  const [domicilio, setDomicilio] = useState('');
   const [idPreference, setIdPreference] = useState('');
   const { articulos, articulosInsumo } = useContext(ArticulosContext);
+
+  useEffect(() => {
+    if (tipoEnvio === 'DELIVERY') {
+      setFormaPago('MERCADO_PAGO');
+    }
+  }, [tipoEnvio]);
 
   const handleQuantityChange = (id: number, cantidad: number) => {
     updateQuantity(id, cantidad);
@@ -38,7 +44,11 @@ const Carrito: React.FC = () => {
   };
 
   const calcularTotal = () => {
-    return cart.reduce((total, item) => total + ('precioVenta' in item ? item.precioVenta * item.cantidad : item.precioPromocional * item.cantidad), 0).toFixed(2);
+    let total = cart.reduce((total, item) => total + ('precioVenta' in item ? item.precioVenta * item.cantidad : item.precioPromocional * item.cantidad), 0);
+    if (tipoEnvio === 'TAKE_AWAY') {
+      total *= 0.9; // Aplicar 10% de descuento para TAKE_AWAY
+    }
+    return total.toFixed(2);
   };
 
   const calcularTotalCosto = () => {
@@ -73,7 +83,7 @@ const Carrito: React.FC = () => {
   const handleSubmit = async () => {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     let maxTiempoEstimado = 0;
-  
+
     // Fetch detalles de promociones y encontrar el tiempo máximo
     const detallesPromociones = await Promise.all(cart
       .filter(item => item.tipo === 'promocion')
@@ -99,7 +109,7 @@ const Carrito: React.FC = () => {
         }).filter(Boolean);
       })
     );
-  
+
     // Encontrar el tiempo máximo de los artículos en el carrito
     cart
       .filter(item => item.tipo === 'articulo')
@@ -108,7 +118,7 @@ const Carrito: React.FC = () => {
           maxTiempoEstimado = item.tiempoEstimadoMinutos;
         }
       });
-  
+
     // Calcular la hora estimada de finalización
     const currentDate = new Date();
     currentDate.setMinutes(currentDate.getMinutes() + maxTiempoEstimado);
@@ -140,9 +150,10 @@ const Carrito: React.FC = () => {
         mpPaymentId: formaPago === 'MERCADO_PAGO' ? idPreference : null,
         pagado: formaPago === 'MERCADO_PAGO',
         totalVenta: parseFloat(calcularTotal())
-      }
+      },
+      domicilio: tipoEnvio === 'DELIVERY' ? domicilio : null // Añadir el domicilio si es DELIVERY
     };
-  
+
     try {
       const response = await fetch('http://localhost:8080/api/pedidos/crear', {
         method: 'POST',
@@ -151,7 +162,7 @@ const Carrito: React.FC = () => {
         },
         body: JSON.stringify(pedido)
       });
-  
+
       if (response.ok) {
         alert('Pedido creado con éxito');
         clearCart();
@@ -170,24 +181,30 @@ const Carrito: React.FC = () => {
     <div style={{ padding: '20px' }}>
       <h2>Carrito de Compras</h2>
       <Form.Group>
-        <Form.Label>Forma de Pago</Form.Label>
-        <Form.Control as="select" value={formaPago} onChange={(e) => setFormaPago(e.target.value)}>
-          <option value="EFECTIVO">Efectivo</option>
-          <option value="MERCADO_PAGO">Mercado Pago</option>
-        </Form.Control>
-      </Form.Group>
-      <Form.Group>
         <Form.Label>Tipo de Envío</Form.Label>
         <Form.Control as="select" value={tipoEnvio} onChange={(e) => setTipoEnvio(e.target.value)}>
           <option value="DELIVERY">Delivery</option>
           <option value="TAKE_AWAY">Take Away</option>
         </Form.Control>
       </Form.Group>
+      {tipoEnvio === 'DELIVERY' && (
+        <Form.Group>
+          <Form.Label>Domicilio</Form.Label>
+          <Form.Control type="text" value={domicilio} onChange={(e) => setDomicilio(e.target.value)} placeholder="Ingrese su domicilio" />
+        </Form.Group>
+      )}
+      <Form.Group>
+        <Form.Label>Forma de Pago</Form.Label>
+        <Form.Control as="select" value={formaPago} onChange={(e) => setFormaPago(e.target.value)} disabled={tipoEnvio === 'DELIVERY'}>
+          <option value="EFECTIVO">Efectivo</option>
+          <option value="MERCADO_PAGO">Mercado Pago</option>
+        </Form.Control>
+      </Form.Group>
       {cart.length === 0 ? (
         <p>El carrito está vacío</p>
       ) : (
         <>
-          <h4>Articulos Seleccionados:</h4>
+          <h4>Artículos Seleccionados:</h4>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             {cart.map((item) => (
               <Card key={item.id} style={{ width: '18rem', marginBottom: '10px' }}>

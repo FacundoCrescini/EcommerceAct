@@ -11,6 +11,7 @@ import GestionUsuarios from "../components/GestionUsuarios/GestionUsuarios";
 import Charts from "../components/Charts/Charts";
 import Cocina from "../components/Pedidos/Cocina";
 import Caja from "../components/Pedidos/Caja";
+import HistorialPedidos from "../components/HistorialPedidos/HistorialPedidos";
 
 const Rutas: React.FC = () => {
   return (
@@ -21,6 +22,7 @@ const Rutas: React.FC = () => {
       
         <Route index element={<Inicio />} />
         <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
+        
         <Route path="/pedidos" element={
           <RolUsuario rol="admin">
             <Pedidos />
@@ -46,7 +48,11 @@ const Rutas: React.FC = () => {
             <Caja></Caja>
           </RolUsuario>
         } />
-
+      <Route path="/h" element={
+          <RolUsuario rol="admin">
+            <HistorialPedidos></HistorialPedidos>
+          </RolUsuario>
+        } />
       </Route>
     </Routes>
   );

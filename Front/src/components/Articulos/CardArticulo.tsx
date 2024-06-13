@@ -31,8 +31,11 @@ const CardArticulo: React.FC<ArticuloCard> = ({ id, denominacion, precioVenta, d
       <Card.Body>
         <Card.Title style={{ textAlign: 'center' }}>{denominacion}</Card.Title>
         <Card.Subtitle className="mb-2 text-muted">${precioVenta}</Card.Subtitle>
-        <Card.Text>{descripcion}</Card.Text>
+        <hr />
         <div style={{ textAlign: 'center' }}>
+          <a href={`/detalle/${id}`}>
+            <Button variant='info' className='mb-3'>Ver Detalle</Button>
+          </a>
           <Button
             variant={isStockDepleted ? "danger" : "primary"}
             onClick={() => addToCart({ id, tipo: 'articulo', denominacion, precioVenta, descripcion, url: imagenes[0]?.url, cantidad: 1, imagenes, stock })}

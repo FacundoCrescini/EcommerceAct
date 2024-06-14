@@ -139,6 +139,7 @@ const Inicio = () => {
 
   const handleCategoriaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
+    //Todas las categorias = ""
     const categoriaId = value === "" ? null : parseInt(value);
     setCategoriaSeleccionada(categoriaId);
   };

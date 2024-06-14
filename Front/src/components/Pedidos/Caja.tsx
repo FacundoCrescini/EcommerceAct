@@ -91,6 +91,13 @@ const Caja: React.FC = () => {
     }
   };
 
+  const getFilteredEstadoOptions = (estadoActual: string) => {
+    if (estadoActual === 'PENDIENTE_ENTREGA_MP' || estadoActual === 'PENDIENTE_ENTREGA_PAGO_EFECTIVO') {
+      return [estadoActual, 'CANCELADO', 'PREPARACION'];
+    }
+    return [estadoActual];
+  };
+
   const estadosCaja = ['PENDIENTE_ENTREGA_MP', 'PENDIENTE_ENTREGA_PAGO_EFECTIVO', 'CANCELADO', 'RECHAZADO', 'ENTREGADO', 'PREPARACION', 'PREPARADO'];
 
   const getClassByEstado = (estado: string) => {
@@ -142,7 +149,7 @@ const Caja: React.FC = () => {
                         onChange={(e) => handleEstadoChange(pedido.id, e.target.value)}
                         disabled={pedido.estado === 'PREPARACION'}
                       >
-                        {estadosCaja.map((estadoOption) => (
+                        {getFilteredEstadoOptions(pedido.estado).map((estadoOption) => (
                           <option key={estadoOption} value={estadoOption}>
                             {estadoOption}
                           </option>

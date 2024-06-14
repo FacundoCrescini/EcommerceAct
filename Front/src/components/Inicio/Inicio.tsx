@@ -56,12 +56,12 @@ type Promocion = {
 };
 
 const Inicio = () => {
-  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  
   const [articulos, setArticulos] = useState<Articulo[]>([]);
   const [articulosInsumo, setArticulosInsumo] = useState<ArticuloInsumo[]>([]);
   const [promociones, setPromociones] = useState<Promocion[]>([]);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
-  const [filtro, setFiltro] = useState<string>('');
+  
+  
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -72,7 +72,7 @@ const Inicio = () => {
   }, []);
 
   const getCategorias = async () => {
-    const response = await fetch('http://localhost:8080/categoria', {
+    const response = await fetch('http://localhost:8080/categoria/NoInsumo', {
       method: 'GET',
       headers: {
         'Content-type': 'application/json',
@@ -133,8 +133,13 @@ const Inicio = () => {
     setPromociones(promocionesConImagenes);
   };
 
+  const [filtro, setFiltro] = useState<string>('');
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState<number | null>(null);
+
   const handleCategoriaChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const categoriaId = parseInt(event.target.value);
+    const value = event.target.value;
+    const categoriaId = value === "" ? null : parseInt(value);
     setCategoriaSeleccionada(categoriaId);
   };
 
@@ -155,8 +160,8 @@ const Inicio = () => {
   );
 
   return (
-    <div className="container">
-      <h2>El Buen Sabor</h2>
+    <div className="container" style={{textAlign:'center'}}>
+      <h1>El Buen Sabor</h1>
       <img
         src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAve-HxyZKbjAq4gWGSTF2yg5Z7eX8W4G5GQ&s"
         alt="El Buen Sabor"
@@ -179,6 +184,7 @@ const Inicio = () => {
           <Form.Control type="text" placeholder="Buscar artículo" value={filtro} onChange={handleFiltroChange} />
         </Form.Group>
       </div>
+      <hr />
 
       <h2 style={{ textAlign: 'center', marginTop: '20px' }}>Promociones</h2>
       <div className="card-container">

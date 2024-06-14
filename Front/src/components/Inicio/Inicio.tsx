@@ -72,7 +72,7 @@ const Inicio = () => {
   }, []);
 
   const getCategorias = async () => {
-    const response = await fetch('http://localhost:8080/categoria/NoInsumo', {
+    const response = await fetch('http://localhost:8080/categoria', {
       method: 'GET',
       headers: {
         'Content-type': 'application/json',

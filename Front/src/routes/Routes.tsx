@@ -14,6 +14,7 @@ import Caja from "../components/Pedidos/Caja";
 import HistorialPedidos from "../components/HistorialPedidos/HistorialPedidos";
 import DetalleArticulo from "../components/Articulos/DetalleArticulo";
 import DetallePromocion from "../components/Promocion/DetallePromocion";
+import Success from "../components/Carrito/Success";
 
 const Rutas: React.FC = () => {
   return (
@@ -21,7 +22,7 @@ const Rutas: React.FC = () => {
       
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<MainLayout />}>
-      
+      <Route path="/success" element={<Success></Success>}></Route>
         <Route index element={<Inicio />} />
 
         <Route path="/detalle">

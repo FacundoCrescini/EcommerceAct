@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Table, Button, Modal } from 'react-bootstrap';
+import ArticulosContext from '../context/ArticulosContext';
 
 type DetallePedido = {
   id: number;
@@ -16,9 +17,11 @@ type Pedido = {
 };
 
 const Cocina: React.FC = () => {
+  const { articulos } = useContext(ArticulosContext);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [detallePedido, setDetallePedido] = useState<DetallePedido[]>([]);
   const [showDetalleModal, setShowDetalleModal] = useState(false);
+  const [showRecetasModal, setShowRecetasModal] = useState(false);
 
   useEffect(() => {
     const fetchPedidos = async () => {
@@ -58,9 +61,16 @@ const Cocina: React.FC = () => {
     setShowDetalleModal(true);
   };
 
+  const handleShowRecetas = () => {
+    setShowRecetasModal(true);
+  };
+
   return (
     <div>
       <h2>Cocina</h2>
+      <Button variant="info" onClick={handleShowRecetas}>
+        Ver Recetario
+      </Button>
       <Table striped bordered hover>
         <thead>
           <tr>
@@ -102,6 +112,28 @@ const Cocina: React.FC = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowDetalleModal(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showRecetasModal} onHide={() => setShowRecetasModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Recetario</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ul>
+            {articulos.map((articulo) => (
+              <li key={articulo.id}>
+                <h5>{articulo.denominacion}</h5>
+                <p>{articulo.preparacion}</p>
+                {/* Aquí puedes añadir más detalles de la receta si es necesario */}
+              </li>
+            ))}
+          </ul>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowRecetasModal(false)}>
             Cerrar
           </Button>
         </Modal.Footer>

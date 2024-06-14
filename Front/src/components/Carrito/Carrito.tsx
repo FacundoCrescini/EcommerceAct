@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 import "./Carrito.css";
 import ArticulosContext from '../context/ArticulosContext';
+import { redirect } from 'react-router-dom';
 
 async function createPreferenceMP(pedido) {
   const urlServer = 'http://localhost:8080/api/pedidos/create_preference_mp';
@@ -83,16 +84,14 @@ const Carrito: React.FC = () => {
   const handleSubmit = async () => {
     const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
     let maxTiempoEstimado = 0;
-
+  
     // Fetch detalles de promociones y encontrar el tiempo máximo
-    const detallesPromociones = await Promise.all(cart
-      .filter(item => item.tipo === 'promocion')
-      .map(async item => {
+    const detallesPromociones = await Promise.all(
+      cart.filter(item => item.tipo === 'promocion').map(async item => {
         const detalles = await fetchDetallesPromocion(item.id);
         return detalles.map(detalle => {
           const articulo = [...articulos, ...articulosInsumo].find(a => a.id === detalle.articuloId);
           if (articulo) {
-            // Comparar y establecer el tiempo máximo estimado
             if (articulo.tiempoEstimadoMinutos > maxTiempoEstimado) {
               maxTiempoEstimado = articulo.tiempoEstimadoMinutos;
             }
@@ -109,20 +108,19 @@ const Carrito: React.FC = () => {
         }).filter(Boolean);
       })
     );
-
+  
     // Encontrar el tiempo máximo de los artículos en el carrito
-    cart
-      .filter(item => item.tipo === 'articulo')
-      .forEach(item => {
-        if (item.tiempoEstimadoMinutos > maxTiempoEstimado) {
-          maxTiempoEstimado = item.tiempoEstimadoMinutos;
-        }
-      });
-
+    cart.filter(item => item.tipo === 'articulo').forEach(item => {
+      if (item.tiempoEstimadoMinutos > maxTiempoEstimado) {
+        maxTiempoEstimado = item.tiempoEstimadoMinutos;
+      }
+    });
+  
     // Calcular la hora estimada de finalización
     const currentDate = new Date();
-    currentDate.setMinutes(currentDate.getMinutes() + maxTiempoEstimado);
+    currentDate.setMinutes(currentDate.getMinutes() + 35);
     const horaEstimadaFinalizacion = currentDate.toTimeString().split(' ')[0];
+  
     const pedido = {
       horaEstimadaFinalizacion: horaEstimadaFinalizacion,
       total: parseFloat(calcularTotal()),
@@ -133,16 +131,14 @@ const Carrito: React.FC = () => {
       fechaPedido: new Date().toISOString().split('T')[0],
       user: usuario,
       detallePedidos: [
-        ...cart
-          .filter(item => item.tipo === 'articulo')
-          .map(item => ({
-            cantidad: item.cantidad,
-            subTotal: item.precioVenta * item.cantidad,
-            articulo: {
-              type: "articuloManufacturado",
-              id: item.id,
-            }
-          })),
+        ...cart.filter(item => item.tipo === 'articulo').map(item => ({
+          cantidad: item.cantidad,
+          subTotal: item.precioVenta * item.cantidad,
+          articulo: {
+            type: "articuloManufacturado",
+            id: item.id,
+          }
+        })),
         ...detallesPromociones.flat()
       ],
       factura: {
@@ -153,7 +149,7 @@ const Carrito: React.FC = () => {
       },
       domicilio: tipoEnvio === 'DELIVERY' ? domicilio : null // Añadir el domicilio si es DELIVERY
     };
-
+  
     try {
       const response = await fetch('http://localhost:8080/api/pedidos/crear', {
         method: 'POST',
@@ -162,10 +158,12 @@ const Carrito: React.FC = () => {
         },
         body: JSON.stringify(pedido)
       });
-
+  
       if (response.ok) {
-        alert('Pedido creado con éxito');
         clearCart();
+        if (formaPago === "EFECTIVO") {
+          window.location.href = "/success"; 
+        }
       } else {
         const errorData = await response.json();
         console.error('Error al crear el pedido:', errorData);
@@ -176,6 +174,8 @@ const Carrito: React.FC = () => {
       alert('Error al enviar el pedido');
     }
   };
+  
+  
 
   return (
     <div style={{ padding: '20px' }}>
@@ -190,7 +190,7 @@ const Carrito: React.FC = () => {
       {tipoEnvio === 'DELIVERY' && (
         <Form.Group>
           <Form.Label>Domicilio</Form.Label>
-          <Form.Control type="text" value={domicilio} onChange={(e) => setDomicilio(e.target.value)} placeholder="Ingrese su domicilio" />
+          <Form.Control type="text" required value={domicilio} onChange={(e) => setDomicilio(e.target.value)} placeholder="Ingrese su domicilio" />
         </Form.Group>
       )}
       <Form.Group>

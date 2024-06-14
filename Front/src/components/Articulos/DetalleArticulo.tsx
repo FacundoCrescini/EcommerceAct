@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import ArticulosContext from '../context/ArticulosContext';
 import { Button, Card, Carousel } from 'react-bootstrap';
+import { useCart } from '../context/CartContext';
 
 type ArticuloCard = {
     id: number;
@@ -20,6 +21,7 @@ type ArticuloCard = {
 const DetalleArticulo = () => {
     const {id} = useParams();
     const { articulos, articulosInsumo } = useContext(ArticulosContext);
+    const { cart, addToCart } = useCart();
 
     const buscarArticuloPorId = (id, array) => {
         return array.find(item => item.id === parseInt(id));
@@ -43,14 +45,14 @@ const DetalleArticulo = () => {
             </div>
         </div>
         
-        <Card style={{ width: '30rem',marginTop:'20px' }}>
+        <Card style={{ width: '80rem',marginTop:'20px' }}>
             <div style={{padding:'20px',display:'flex',justifyContent:'center',alignItems:'center'}}>
 
             
         <Carousel>
         {articulo.imagenes.map((imagen, index) => (
                         <Carousel.Item key={index}>
-                            <img src={imagen.url} alt="" style={{ maxWidth: '300px' }} />
+                            <img src={imagen.url} alt="" style={{ maxWidth: '400px' }} />
                         </Carousel.Item>
                     ))}
       </Carousel>
@@ -63,7 +65,7 @@ const DetalleArticulo = () => {
          {articulo.descripcion}
         </Card.Text>
         <hr />
-        <Button variant="primary">Añadir al carrito</Button>
+        {/*<Button variant="primary">Añadir al carrito</Button>*/}
       </Card.Body>
     </Card>
     </div>

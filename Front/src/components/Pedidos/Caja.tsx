@@ -91,14 +91,19 @@ const Caja: React.FC = () => {
     }
   };
 
-  const getFilteredEstadoOptions = (estadoActual: string) => {
-    if (estadoActual === 'PENDIENTE_ENTREGA_MP' || estadoActual === 'PENDIENTE_ENTREGA_PAGO_EFECTIVO') {
-      return [estadoActual, 'CANCELADO', 'PREPARACION'];
-    }
-    return [estadoActual];
-  };
-
   const estadosCaja = ['PENDIENTE_ENTREGA_MP', 'PENDIENTE_ENTREGA_PAGO_EFECTIVO', 'CANCELADO', 'RECHAZADO', 'ENTREGADO', 'PREPARACION', 'PREPARADO'];
+
+  const getOptionsByEstado = (estadoActual: string) => {
+    switch (estadoActual) {
+      case 'PREPARADO':
+        return ['PREPARADO', 'ENTREGADO', 'CANCELADO'];
+      case 'PENDIENTE_ENTREGA_PAGO_EFECTIVO':
+      case 'PENDIENTE_ENTREGA_MP':
+        return [estadoActual, 'PREPARACION', 'CANCELADO'];
+      default:
+        return estadosCaja;
+    }
+  };
 
   const getClassByEstado = (estado: string) => {
     switch (estado) {
@@ -147,9 +152,9 @@ const Caja: React.FC = () => {
                         as="select"
                         value={nuevoEstado[pedido.id] || pedido.estado}
                         onChange={(e) => handleEstadoChange(pedido.id, e.target.value)}
-                        disabled={pedido.estado === 'PREPARACION'}
+                        disabled={['PREPARACION', 'ENTREGADO', 'CANCELADO'].includes(pedido.estado)}
                       >
-                        {getFilteredEstadoOptions(pedido.estado).map((estadoOption) => (
+                        {getOptionsByEstado(pedido.estado).map((estadoOption) => (
                           <option key={estadoOption} value={estadoOption}>
                             {estadoOption}
                           </option>
@@ -162,7 +167,7 @@ const Caja: React.FC = () => {
                         <Button
                           className="me-2"
                           onClick={() => handleSubmit(pedido.id)}
-                          disabled={pedido.estado === 'PREPARACION'}
+                          disabled={['PREPARACION', 'ENTREGADO', 'CANCELADO'].includes(pedido.estado)}
                         >
                           Actualizar Estado
                         </Button>

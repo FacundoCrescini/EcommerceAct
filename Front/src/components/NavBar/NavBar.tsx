@@ -50,7 +50,7 @@ const NavBar: React.FC = () => {
           {user && (
             <Nav className="ms-auto">
               <Nav.Link as={Link} to="/h">Mis pedidos</Nav.Link>
-              <NavDropdown title={`Signed in as: ${user.usuario}`} id="user-dropdown">
+              <NavDropdown title={`Signed in as: ${user.nombre}`} id="user-dropdown">
                 <NavDropdown.Item onClick={handleLogout}>Cerrar Sesión</NavDropdown.Item>
               </NavDropdown>
             </Nav>

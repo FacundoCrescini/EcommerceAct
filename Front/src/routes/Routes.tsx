@@ -32,6 +32,9 @@ const Rutas: React.FC = () => {
           <Route path=":id" element={<DetallePromocion/>}/>
         </Route>
         <Route path="/carrito" element={<RutaPrivada><Carrito /></RutaPrivada>} />
+        <Route path="/h" element={<RutaPrivada><HistorialPedidos></HistorialPedidos></RutaPrivada>} />
+
+      
         
         <Route path="/pedidos" element={
           <RolUsuario rol="admin">
@@ -58,11 +61,7 @@ const Rutas: React.FC = () => {
             <Caja></Caja>
           </RolUsuario>
         } />
-      <Route path="/h" element={
-          <RolUsuario rol="admin">
-            <HistorialPedidos></HistorialPedidos>
-          </RolUsuario>
-        } />
+      
       </Route>
     </Routes>
   );

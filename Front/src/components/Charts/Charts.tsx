@@ -116,6 +116,24 @@ const Charts = () => {
     }
   };
 
+  const generarExcelLocal = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/pedidos/generarExcelCompleto', {
+        responseType: 'blob',
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'ReporteCompleto.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error descargando el archivo Excel:', error);
+    }
+  };
+
   const handleFechaInicioChange = (event) => {
     setFechaInicio(event.target.value);
   };
@@ -134,6 +152,9 @@ const Charts = () => {
       {generarGraficoPorFormaPago()}
       {generarGraficoPorMes()}
       {generarGraficoPorArticulo()}
+      <div className="generar-local">
+        <button onClick={generarExcelLocal}>Generar Excel con Datos del Local</button>
+      </div>
     </div>
   );
 };

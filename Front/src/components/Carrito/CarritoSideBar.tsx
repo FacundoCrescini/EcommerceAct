@@ -17,7 +17,8 @@ const CarritoSidebar: React.FC = () => {
   };
 
   const calcularTotal = () => {
-    return cart.reduce((total, item) => total + item.precioVenta * item.cantidad, 0).toFixed(2);
+    return cart.reduce((total, item) => 
+      total + ('precioVenta' in item ? item.precioVenta * item.cantidad : item.precioPromocional * item.cantidad), 0).toFixed(2);
   };
 
   const handleSubmit = () => {
@@ -50,7 +51,7 @@ const CarritoSidebar: React.FC = () => {
                   />
                   <Card.Body>
                     <Card.Title>{item.denominacion}</Card.Title>
-                    <Card.Subtitle>${item.precioVenta}</Card.Subtitle>
+                    <Card.Subtitle>${'precioVenta' in item ? item.precioVenta : item.precioPromocional}</Card.Subtitle>
                     <Card.Text>{item.descripcion}</Card.Text>
                     <input
                       type="number"
@@ -62,7 +63,7 @@ const CarritoSidebar: React.FC = () => {
                     <Button variant="danger" onClick={() => removeFromCart(item.id)}>
                       Eliminar
                     </Button>
-                    <div>Subtotal: ${calcularSubtotal(item.precioVenta, item.cantidad)}</div>
+                    <div>Subtotal: ${calcularSubtotal('precioVenta' in item ? item.precioVenta : item.precioPromocional, item.cantidad)}</div>
                   </Card.Body>
                 </Card>
               ))}
@@ -80,4 +81,4 @@ const CarritoSidebar: React.FC = () => {
   );
 };
 
-export default CarritoSidebar;
+export default CarritoSidebar;
